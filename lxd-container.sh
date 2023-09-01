@@ -40,7 +40,16 @@ lxc exec bookworm -- pipx ensurepath
 lxc exec bookworm -- cd /tmp/nuttxspace/nuttx && \
     ./tools/configure.sh -l esp32s3-devkit:nsh && make
 
-#TODO
-# https://zig.news/lupyuen/zig-on-risc-v-bl602-quick-peek-with-apache-nuttx-rtos-3apd
 
+
+lxc exec bookworm -- curl -sL https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.244+f4c9e19bc.tar.xz \
+    | tar x -Jv -C $HOME/.local -f -
+
+lxc exec bookworm -- ln -s $HOME/.local/zig-linux-aarch64-0.12.0-dev.244+f4c9e19bc/zig $HOME/.local/bin/zig
+lxc exec bookworm -- zig build-obj -target=riscv32-freestanding-none \
+    -mcpu=baseline_rv32-d  hello.zig
+
+#TODO esp32s3 datasheet says RISCV and single precision FPU,
+#     what are its other attributes?
+# https://zig.news/lupyuen/zig-on-risc-v-bl602-quick-peek-with-apache-nuttx-rtos-3apd
  

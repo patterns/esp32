@@ -1,33 +1,38 @@
-/*
-  Blink
+#include <BeeS3.h> //include the bee s3 helper library
 
-  Turn LED on for one second,
-  then off for one second,
-  repeat.
-*/
-
-#include "Arduino.h"
-
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 13
-#endif
+BEES3 bees3;  //pull the BEES3 class from the helper and name it bees3 so we can use it below;
 
 void setup() {
-  // initialize LED digital pin for output
-  pinMode(LED_BUILTIN, OUTPUT);
+  bees3.begin(); // Initalize the helper library. if you fail to do this the program will not work as intended.
+
+  // Brightness is 0-255. We set it to 1/2 brightness here
+   bees3.setPixelBrightness(255 / 2);
 }
+
+int color = 0;
 
 void loop() {
-  // turn LED on
-  digitalWrite(LED_BUILTIN, HIGH);
+  // colorWheel cycles through all the colors.
+  bees3.setPixelColor(BEES3::colorWheel(color));
+  color++;
 
-  // wait one second
-  delay(1000);
+  // or you can select a specific color like so
+  // the predefined colors you can choose from are green, red, blue, pink, purple, yellow, white, aqua and orange.
 
-  // turn LED off
-  digitalWrite(LED_BUILTIN, LOW);
+  // bees3.setPixelColor(blue);  
+  // uncomment the line above to use it.
 
-  // wait one second
-  delay(1000);
+  // or by using RGB color numbers.
+  // bees3.setPixelColor(150,0,150);
+
+  // uncomment the line above to use it.
+  // find a list of all color RGB values here https://www.rapidtables.com/web/color/RGB_Color.html
+  
+  // or you can use any color hex code.
+  
+  // bees3.setPixelColor(0x00FF0000);
+  // uncomment the line above to use it.
+  // find hex color codes here https://soft.infomir.com/stb/522/Doc/ColorCodes.html
+
+  delay(15);
 }
-

@@ -24,17 +24,14 @@ void setup() {
   bees3.begin();
   bees3.setPixelBrightness(255 / 2);
   Serial.begin(115200);
-/*
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.printf("WiFi fault\n");
-    color = 100; // unhappy led
+    color = -100; // unhappy condition
     return;
-  }*/
-
-  WiFi.softAP("ESP32-AP", "thisisarduino");
-  Serial.println("AP running");
+  }
 
   server.on("/", HTTP_GET, onIndexRequest);
   server.onNotFound(notFound);
@@ -42,13 +39,15 @@ void setup() {
 }
 
 void loop() {
+  if (color < 0) {
+    bees3.setPixelColor(BEES3::colorWheel(100));
+    return;
+  }
 
+  color++;
   bees3.setPixelColor(BEES3::colorWheel(color));
-  ////color++;
-  ////bees3.setPixelColor(orange);  
 
   Serial.print("My IP address: ");
-  ////Serial.println(WiFi.localIP());
-  Serial.println(WiFi.softAPIP());
+  Serial.println(WiFi.localIP());
   delay(5000);
 }

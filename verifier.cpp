@@ -1,28 +1,23 @@
 #include <BeeS3.h> //include the bee s3 helper library
 #include <WiFi.h>
 #include <AsyncTCP.h>
+#include <AsyncJson.h>
+#include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-#include <mbedtls/platform.h>
-#include <mbedtls/sha256.h>
-#include <mbedtls/sha512.h>
-#include <mbedtls/oid.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
-#include <mbedtls/md.h>
 #include <mbedtls/bignum.h>
-#include <mbedtls/hmac_drbg.h>
-
+#include <mbedtls/rsa.h>
+#include <mbedtls/md.h>
 
 // ****TODO**** move to the secrets.h ?
 const char* ssid = "YOURSSID";
 const char* password = "YOURPASS";
+const size_t CAPACITY = JSON_OBJECT_SIZE(4);
 
 BEES3 bees3;  //pull the BEES3 class from the helper and name it bees3 so we can use it below;
 int color = 20; // orange
 AsyncWebServer server(80);
 // landing page delegate
 void onIndexRequest(AsyncWebServerRequest *request) {
-  ////Serial.println("[placeholder] HTTP GET request of ");
   char payload[24] = "Hello SHA 256!";
   byte shaResult[32];
   mbedtls_md_context_t ctx;
@@ -48,6 +43,25 @@ void onIndexRequest(AsyncWebServerRequest *request) {
 void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not Found");
 }
+// verify delegate
+AsyncCallbackJsonWebHandler* pkcs1Verify = new AsyncCallbackJsonWebHandler("/verify",
+  [](AsyncWebServerRequest *request, JsonVariant &jsv) {
+  JsonObject jso = jsv.as<JsonObject>();
+  ////StaticJsonDocument<CAPACITY> doc;
+  ////deserializeJson(doc, jso);
+
+  const char* pong = jso["sig"];
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  //(baby step, echo json field)
+  ////serializeJsonPretty(doc, *response);
+  response->print("{ \"sig\":");
+  response->printf(" \"%s\" ", pong);
+  response->print("}");
+  Serial.print("Verify: ");
+  Serial.println(pong);  //assuming this is hex
+  request->send(response);
+});
 
 void setup() {
   bees3.begin();
@@ -61,8 +75,8 @@ void setup() {
     color = -100; // unhappy condition
     return;
   }
-
   server.on("/", HTTP_GET, onIndexRequest);
+  server.addHandler(pkcs1Verify);
   server.onNotFound(notFound);
   server.begin();
 }

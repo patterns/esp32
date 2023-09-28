@@ -25,4 +25,9 @@ lxc exec bkw --user 999 --cwd /home/bee --env PATH=/home/bee/.local/bin:$PATH --
 # 4. run `screen /dev/ttyACM0 9600`
 ##lxc exec bkw --user 999 --cwd /home/bee --env PATH=/home/bee/.local/bin:$PATH -- pio run -d /home/bee/blinky -t upload
 
+# additional cleaning
+##pio run -t clean
+##pio upgrade
+##pio system prune
+##pio pkg update
 

@@ -9,6 +9,9 @@ Learning esp32 embedded code
 Zig with NuttX
  by [Lup Yuen Lee](https://zig.news/lupyuen/zig-on-risc-v-bl602-quick-peek-with-apache-nuttx-rtos-3apd) [LICENSE](https://github.com/lupyuen/zig-bl602-nuttx/blob/main/LICENSE)
 
+MbedTLS on Arduino
+ by [DFRobot](https://www.dfrobot.com/blog-1002.html)
+
 ESP32 Web server
  by [Shawn Hymel](https://shawnhymel.com/1882/how-to-create-a-web-server-with-websockets-using-an-esp32-in-arduino/)
 

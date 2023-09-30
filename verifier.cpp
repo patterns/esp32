@@ -7,6 +7,7 @@
 #include <mbedtls/bignum.h>
 #include <mbedtls/rsa.h>
 #include <mbedtls/md.h>
+#include <Base64.h>
 
 // ****TODO**** move to the secrets.h ?
 const char* ssid = "YOURSSID";
@@ -74,27 +75,41 @@ AsyncCallbackJsonWebHandler* pkcs1Verify = new AsyncCallbackJsonWebHandler("/ver
   int ready = mbedtls_rsa_complete(&rsa_context);
   if (ready != 0) verify_fault = 32;
 
-  // TODO
-  //     sig is rcv as base64 and needs to be converted to u8[256]
-  //     hashed must be calc'd as digest of the base input text (so make it base64 input?)
-  //
-  // the mbedTLS verify
-  int status = mbedtls_rsa_pkcs1_verify(&rsa_context, NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                                MBEDTLS_MD_SHA256, 32,
-                                (const unsigned char*) hashed, (const unsigned char*) sig);
-  if (status != 0) verify_fault = 64;
+  // the sig header is base64 and must be decoded
+  int ilen = strlen(sig);
+  int olen = Base64.decodedLength((char*)sig, ilen);
+  char deco[olen + 1];
+
+  int count = Base64.decode(deco, (char*)sig, ilen);
+  //Serial.print("decoded sig header:\t");
+  //Serial.println(deco);
+  int status = 0;
+  if (count != olen) verify_fault = 64;
+  else {
+    // the mbedTLS verify
+    status = mbedtls_rsa_pkcs1_verify(&rsa_context, NULL, NULL, MBEDTLS_RSA_PUBLIC,
+                        MBEDTLS_MD_SHA256, 32,
+                        (const unsigned char*)hashed, (const unsigned char*)deco);
+    if (status != 0) verify_fault = 128;
+  }
+
+
   mbedtls_mpi_free(&mpi_e);
   mbedtls_mpi_free(&mpi_n);
   mbedtls_rsa_free(&rsa_context);
   switch (verify_fault) {
     case 16: Serial.println("Verify fault, modulus or exponent is not hex.");break;
     case 32: Serial.println("Verify fault, N/E import.");break;
-    case 64: Serial.println("Verify fault, signature mismatch.");break;
+    case 64: Serial.println("Verify fault, base64 decode.");break;
+    case 128: Serial.println("Verify fault, signature mismatch.");break;
   }
   // pretty print for consumer
   AsyncResponseStream *response = request->beginResponseStream("application/json");
-  response->print("{ \"signature\":");
-  response->printf(" \"%s\" ", sig);
+  response->print("{ \"hashed\":");
+  response->printf(" \"%s\" ", hashed);
+  response->print(", \"status\":");
+  response->printf(" \"%s\" ", (status == 0)? "pass": "mismatch");
+
   response->print("}");
 
   request->send(response);
